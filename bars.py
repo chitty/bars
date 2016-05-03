@@ -16,11 +16,9 @@ import requests
 app = Flask(__name__)
 
 
-# @todo
-# CLIENT_ID = json.loads(
-#        open('client_secret.json', 'r').read())['web']['client_id']
-# APPLICATION_NAME = "Bar Menu Application"
-CLIENT_ID = 1
+CLIENT_ID = json.loads(
+       open('client_secret.json', 'r').read())['web']['client_id']
+APPLICATION_NAME = "Bar Menu Application"
 
 
 # Connect to Database and create database session
@@ -31,18 +29,18 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# Create anti-forgery state token
 @app.route('/login')
 def showLogin():
+    """Creates anti-forgery state token and renders login page"""
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
-    # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
 
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """Sign in with Google+"""
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -112,9 +110,9 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
-    user_id = getUserID(data['name'])
+    user_id = getUserID(login_session['email'])
     if not user_id:
-        user_id = createUser(data)
+        user_id = createUser(login_session)
     login_session['user_id'] = user_id
 
     output = ''
@@ -125,40 +123,33 @@ def gconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
     return output
 
 
 @app.route('/gdisconnect')
 def gdisconnect():
-    access_token = login_session['access_token']
-    print 'In gdisconnect access token is %s', access_token
-    print 'User name is: '
-    print login_session['username']
+    credentials = login_session.get('credentials')
+    access_token = credentials.access_token
     if access_token is None:
         print 'Access Token is None'
         response = make_response(json.dumps('Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-        url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
-        h = httplib2.Http()
-        result = h.request(url, 'GET')[0]
-        print 'result is '
-        print result
-        if result['status'] == '200':
-            del login_session['access_token'] 
-            del login_session['gplus_id']
-            del login_session['username']
-            del login_session['email']
-            del login_session['picture']
-            response = make_response(json.dumps('Successfully disconnected.'), 200)
-            response.headers['Content-Type'] = 'application/json'
-            return response
-        else:
-
-            response = make_response(json.dumps('Failed to revoke token for given user.', 400))
-            response.headers['Content-Type'] = 'application/json'
-            return response
+    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[0]
+    print 'result is '
+    print result
+    if result['status'] == '200':
+        del login_session['credentials']
+        del login_session['gplus_id']
+        del login_session['username']
+        del login_session['email']
+        del login_session['picture']
+        flash("Successfully disconnected." )
+    else:
+        flash("Failed to revoke token for given user.")
+    return redirect(url_for('showBars'))
 
 
 # JSON APIs to view Bar Information
@@ -194,7 +185,7 @@ def showBars():
 @app.route('/bar/new/', methods=['GET', 'POST'])
 def newBar():
     if request.method == 'POST':
-        newBar = Bar(name=request.form['name'], user_id=1)  # @todo: login_session['user_id'])
+        newBar = Bar(name=request.form['name'], user_id=login_session['user_id'])
         session.add(newBar)
         flash('New Bar %s Successfully Created' % newBar.name)
         session.commit()
@@ -207,6 +198,11 @@ def newBar():
 @app.route('/bar/<int:bar_id>/edit/', methods=['GET', 'POST'])
 def editBar(bar_id):
     editedBar = session.query(Bar).filter_by(id=bar_id).one()
+    if 'username' not in login_session:
+        return redirect('login')
+    elif editedBar.user_id != login_session['user_id']:
+        flash('You are not authorized to edit this bar!')
+        return redirect(url_for('showBars'))
     if request.method == 'POST':
         if request.form['name']:
             editedBar.name = request.form['name']
@@ -219,13 +215,17 @@ def editBar(bar_id):
 # Delete a bar
 @app.route('/bar/<int:bar_id>/delete/', methods=['GET', 'POST'])
 def deleteBar(bar_id):
-    barToDelete = session.query(
-        Bar).filter_by(id=bar_id).one()
+    barToDelete = session.query(Bar).filter_by(id=bar_id).one()
+    if 'username' not in login_session:
+        return redirect('login')
+    elif barToDelete.user_id != login_session['user_id']:
+        flash('You are not authorized to delete this bar!')
+        return redirect(url_for('showBars'))
     if request.method == 'POST':
         session.delete(barToDelete)
         flash('%s Successfully Deleted' % barToDelete.name)
         session.commit()
-        return redirect(url_for('showBars', bar_id=bar_id))
+        return redirect(url_for('showBars'))
     else:
         return render_template('delete_bar.html', bar=barToDelete)
 
@@ -236,8 +236,12 @@ def deleteBar(bar_id):
 @app.route('/bar/<int:bar_id>/menu/')
 def showMenu(bar_id):
     bar = session.query(Bar).filter_by(id=bar_id).one()
+    creator = getUserInfo(bar.user_id)
     drinks = session.query(Drink).filter_by(bar_id=bar_id).all()
-    return render_template('menu.html', drinks=drinks, bar=bar)
+    if 'username' not in login_session or creator.id != login_session['user_id']:
+        return render_template('public_menu.html', drinks=drinks, bar=bar, creator=creator)
+    else:
+        return render_template('menu.html', drinks=drinks, bar=bar, creator=creator)
 
 
 # Create a new menu item
@@ -247,10 +251,10 @@ def newDrink(bar_id):
         newDrink = Drink(name=request.form['name'],
                          description=request.form['description'],
                          price=request.form['price'], bar_id=bar_id,
-                         user_id=1)  # @todo: login_session['user_id'])
+                         user_id=login_session['user_id'])
         session.add(newDrink)
         session.commit()
-        flash('New Menu %s Item Successfully Created' % (newDrink.name))
+        flash('New Drink %s Successfully Created' % (newDrink.name))
         return redirect(url_for('showMenu', bar_id=bar_id))
     else:
         return render_template('new_drink.html', bar_id=bar_id)
@@ -261,6 +265,11 @@ def newDrink(bar_id):
 def editDrink(bar_id, drink_id):
 
     editedDrink = session.query(Drink).filter_by(id=drink_id).one()
+    if 'username' not in login_session:
+        return redirect('login')
+    elif editedDrink.user_id != login_session['user_id']:
+        flash('You are not authorized to edit this drink!')
+        return redirect(url_for('showMenu', bar_id=bar_id))
     if request.method == 'POST':
         if request.form.get('name'):
             editedDrink.name = request.form['name']
@@ -280,10 +289,15 @@ def editDrink(bar_id, drink_id):
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/delete', methods=['GET', 'POST'])
 def deleteDrink(bar_id, drink_id):
     drinkToDelete = session.query(Drink).filter_by(id=drink_id).one()
+    if 'username' not in login_session:
+        return redirect('login')
+    elif drinkToDelete.user_id != login_session['user_id']:
+        flash('You are not authorized to delete this drink!')
+        return redirect(url_for('showMenu', bar_id=bar_id))
     if request.method == 'POST':
         session.delete(drinkToDelete)
         session.commit()
-        flash('Menu Item Successfully Deleted')
+        flash('Drink Successfully Deleted')
         return redirect(url_for('showMenu', bar_id=bar_id))
     else:
         return render_template('delete_drink.html', drink=drinkToDelete)
@@ -303,7 +317,9 @@ def getUserInfo(user_id):
 
 
 def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session['email'], picture=login_session['picture'])
+    newUser = User(name=login_session['username'],
+                   email=login_session['email'],
+                   picture=login_session['picture'])
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()

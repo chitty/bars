@@ -1,0 +1,23 @@
+{% extends "main.html" %}
+{% block content %}
+
+<h1>{{ bar.name }}</h1>
+
+{% include "flash.html" %}
+
+{% if drinks !=[] %}	
+	<div class="row">
+		<div class="col-md-3">
+
+			<h2>Beverages</h2>
+				{% for i in drinks %}
+					<div class="menu-item">
+						<h3>{{i.name}}</h3>
+						<p>{{i.description}}</p>
+						<p class="menu-price">{{i.price}}</p>
+					</div>
+				{% endfor %}
+		</div>
+	</div>
+{% endif %}
+{% endblock %}

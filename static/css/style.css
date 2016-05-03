@@ -1,3 +1,8 @@
 body {
 	font-family: "Architects Daughter", sans-serif;
 }
+
+.user-pic {
+	max-height: 48px;
+	max-width: 48px;
+}

@@ -2,6 +2,7 @@
 {% block content %}
 {% include "flash.html" %}
 
+{% if 'username' in session %}
 <div class="row padding-top padding-bottom">
 	<div class="col-md-10 padding-none">
 		<a href="{{url_for('newBar')}}">
@@ -11,6 +12,7 @@
 		</a>
 	</div>
 </div>
+{% endif %}
 
 <div class="row">
 {% for bar in bars %}
