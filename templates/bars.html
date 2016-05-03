@@ -1,55 +1,27 @@
 {% extends "main.html" %}
 {% block content %}
-{% include "header.html" %}
-	<div class="row top-menu">
-		<div class="col-md-10"></div>
-		<div class="col-md-2 text-right">
-					</div>
-	</div>
-	<div class="row divider blue">
-		<div class="col-md-12"></div>
-	</div>
-	<div class="row banner main">
-		<div class="col-md-1"></div>
-		<div class="col-md-11 padding-none">
-			<h1>Bars</h1>
-		</div>
-	</div>
+{% include "flash.html" %}
 
-<div class = 'flash'>
-		      {% with messages = get_flashed_messages() %}
-      {% if messages %}
-          
-        <ul>
-        {% for message in messages %}
-            <li> <strong> {{ message }} </strong> </li>
-        {% endfor %}
-        </ul>
-        {% endif %}
-    {% endwith %}
-
-</div>
-	
-	<div class="row padding-top padding-bottom">
-		<div class="col-md-1"></div>
-		<div class="col-md-10 padding-none">
-			<a href="{{url_for('newBar')}}">
-				<button class="btn btn-default" id="new-bar">
-					<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span>Add Bar
-				</button>
-			</a>
-		</div>
-		<div class="col-md-1"></div>
-	</div>
-	{% for bar in bars %}
-		<a href = "{{url_for('showMenu', bar_id = bar.id)}}">
-			<div class="row">
-				<div class="col-md-1"></div>
-					<div class="col-md-10 bar-list">
-						<h3>{{bar.name}}</h3>
-					</div>
-				<div class="col-md-1"></div>
-			</div>
+<div class="row padding-top padding-bottom">
+	<div class="col-md-10 padding-none">
+		<a href="{{url_for('newBar')}}">
+			<button class="btn btn-default" id="new-bar">
+				<span class="glyphicon glyphicon-cutlery" aria-hidden="true"></span> Add Bar
+			</button>
 		</a>
-	{% endfor %}
+	</div>
+</div>
+
+<div class="row">
+{% for bar in bars %}
+<div class="col-xs-12 col-sm-6 col-md-3">
+	<h3>
+	<a href="{{url_for('showMenu', bar_id = bar.id)}}">
+		{{bar.name}}
+	</a>
+	</h3>
+</div>
+
+{% endfor %}
+</div>
 {% endblock %}

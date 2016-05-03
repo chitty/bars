@@ -1,6 +1,5 @@
 {% extends "main.html" %}
 {% block content %}
-{% include "header.html" %}
 	<div class="row divider green">
 		<div class="col-md-12"></div>
 	</div>
@@ -18,12 +17,12 @@
 					<div class="padding-bottom"></div>
 					<button type="submit" class="btn btn-default" id="submit" type="submit">
 					<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>Save</button>
-					<a href = '{{url_for('showBars')}}'>
-						<button class="btn btn-default delete">
-						<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
-					</a>
 				</div>
 			</form>
+			<a href="{{url_for('showBars')}}">
+				<button class="btn btn-default delete">
+				<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+			</a>
 		</div>
 	</div>
 {% endblock %}
