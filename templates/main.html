@@ -33,8 +33,19 @@
 
 	<img class="img-responsive bar-img" src="{{ url_for('static', filename='img/bar.jpg') }}">
 	<div class="container">
+		{% include "flash.html" %}
+		<h1>
+		{% block title %}
+		{% endblock %}
+		</h1>
+		<div class="row">
+		{% block buttons %}
+		{% endblock %}
+		</div>
+		<div class="row">
 		{% block content %}
 		{% endblock %}
+		</div>
 	</div>
 
 </body>

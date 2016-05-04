@@ -1,7 +1,7 @@
 {% extends "main.html" %}
-{% block content %}
-<h2> Are you sure you want to delete {{drink.name}}? </h2>
+{% block title %}Are you sure you want to delete {{drink.name}}? {% endblock %}
 
+{% block buttons %}
 <form action="#" method = 'post'>
 
 	<button type="submit" class="btn btn-default delete" id="submit" type="submit">
@@ -9,8 +9,8 @@
 
 </form>
 
-	<a href="{{url_for('showBars')}}">
-		<button class="btn btn-default delete">
-		<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
-	</a>
+<a href="{{url_for('showMenu', bar_id = drink.bar_id)}}">
+	<button class="btn btn-default delete">
+	<span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Cancel</button>
+</a>
 {% endblock %}

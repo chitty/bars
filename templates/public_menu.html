@@ -1,23 +1,17 @@
 {% extends "main.html" %}
+{% block title %} {{ bar.name }} {% endblock %}
+
 {% block content %}
-
-<h1>{{ bar.name }}</h1>
-
-{% include "flash.html" %}
-
 {% if drinks !=[] %}	
-	<div class="row">
-		<div class="col-md-3">
-
-			<h2>Beverages</h2>
-				{% for i in drinks %}
-					<div class="menu-item">
-						<h3>{{i.name}}</h3>
-						<p>{{i.description}}</p>
-						<p class="menu-price">{{i.price}}</p>
-					</div>
-				{% endfor %}
-		</div>
+	<div class="col-md-3">
+		<h2>Beverages</h2>
+			{% for drink in drinks %}
+				<div class="menu-item">
+					<h3>{{drink.name}}</h3>
+					<p>{{drink.description}}</p>
+					<p class="menu-price">{{drink.price}}</p>
+				</div>
+			{% endfor %}
 	</div>
 {% endif %}
 {% endblock %}
