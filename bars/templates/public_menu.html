@@ -2,16 +2,15 @@
 {% block title %} {{ bar.name }} {% endblock %}
 
 {% block content %}
-{% if drinks !=[] %}	
-	<div class="col-md-3">
-		<h2>Beverages</h2>
-			{% for drink in drinks %}
-				<div class="menu-item">
-					<h3>{{drink.name}}</h3>
-					<p>{{drink.description}}</p>
-					<p class="menu-price">{{drink.price}}</p>
-				</div>
-			{% endfor %}
+{% if drinks !=[] %}
+{% for drink in drinks %}
+	<div class="col-md-6">
+		<div class="menu-item">
+			<h3><a href="{{url_for('viewDrink', bar_id = drink.bar_id, drink_id=drink.id)}}">{{drink.name}}</a></h3>
+			<p>{{drink.description}}</p>
+			<p class="menu-price">$ {{drink.price}}</p>
+		</div>
 	</div>
+{% endfor %}
 {% endif %}
 {% endblock %}
