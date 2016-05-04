@@ -8,3 +8,5 @@ The repository includes a Vagrant Virtual Machine with all the project's depende
 	vagrant ssh
 
 Once in the virtual machine terminal navigate to `vagrant/bars` and create the database by running `python database_setup.py`. Run the actual app `python bars.py`
+
+Optional: To load some initial data run `python some_drinks.py`.
