@@ -23,7 +23,7 @@
 				</a>
 				{% else %}
 				<img class="img-circle user-pic" src="{{session['picture']}}" alt="{{session['username']}}"> {{session['username']}}
-				<a href="{{url_for('gdisconnect')}}">
+				<a href="{{url_for('disconnect')}}">
 					<button type="button" class="btn btn-default navbar-btn">Log Out</button>
 				</a>
 			{% endif %}
