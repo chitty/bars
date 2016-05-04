@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, jsonify, url_for
 from flask import make_response, flash
 from sqlalchemy import create_engine, asc
@@ -235,7 +236,23 @@ def barsJSON():
 @app.route('/bar/')
 def showBars():
     bars = session.query(Bar).order_by(asc(Bar.name))
-    return render_template('bars.html', bars=bars)
+    newest_drinks = newestDrinks()
+    return render_template('bars.html', bars=bars, newest_drinks=newest_drinks)
+
+
+def newestDrinks():
+    """Gets 10 drinks that were recently added"""
+    drinks = session.query(Drink).order_by(Drink.created.desc()).limit(10)
+    new_drinks = []
+    for drink in drinks:
+        drink_data = {"id": drink.id,
+                      "name": drink.name,
+                      "bar_id": drink.bar.id,
+                      "bar_name": drink.bar.name,
+                      "created": drink.created}
+        new_drinks.append(drink_data)
+    return new_drinks
+
 
 
 # Create a new bar
@@ -314,6 +331,14 @@ def newDrink(bar_id):
         return render_template('new_drink.html', bar_id=bar_id)
 
 
+@app.route('/bar/<int:bar_id>/menu/<int:drink_id>/view', methods=['GET'])
+def viewDrink(bar_id, drink_id):
+    """Render detailed information of the drink"""
+
+    drink = session.query(Drink).filter_by(id=drink_id).one()
+    return render_template('view_drink.html', drink=drink)
+
+
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/edit', methods=['GET', 'POST'])
 def editDrink(bar_id, drink_id):
 
@@ -377,7 +402,39 @@ def createUser(login_session):
     user = session.query(User).filter_by(email=login_session['email']).one()
     return user.id
 
+
+@app.template_filter()
+def timesince(dt, default="just now"):
+    """
+    Returns string representing "time since" e.g.
+    3 days ago, 5 hours ago etc.
+
+    Function taken from: http://flask.pocoo.org/snippets/33/
+    """
+
+    now = datetime.utcnow()
+    diff = now - dt
+
+    periods = (
+        (diff.days / 365, "year", "years"),
+        (diff.days / 30, "month", "months"),
+        (diff.days / 7, "week", "weeks"),
+        (diff.days, "day", "days"),
+        (diff.seconds / 3600, "hour", "hours"),
+        (diff.seconds / 60, "minute", "minutes"),
+        (diff.seconds, "second", "seconds"),
+    )
+
+    for period, singular, plural in periods:
+
+        if period:
+            return "%d %s ago" % (period, singular if period == 1 else plural)
+
+    return default
+
+
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
+    app.jinja_env.filters['timesince'] = jinja_filters.timesince

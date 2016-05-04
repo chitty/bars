@@ -1,4 +1,5 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+import datetime
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -44,6 +45,7 @@ class Drink(Base):
     bar = relationship(Bar)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
+    created = Column(DateTime, default=datetime.datetime.utcnow)
 
     @property
     def serialize(self):

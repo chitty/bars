@@ -1,0 +1,16 @@
+{% extends "main.html" %}
+{% block content %}
+<h1>{{drink.name}}</h1>
+<div class="row">
+	<div class="col-md-6">
+	<ul>
+	<li>{{drink.description}}</li>
+	<li>${{drink.price}}</li>
+
+	<li>Available in <a href="{{url_for('showMenu', bar_id = drink.bar.id)}}">{{drink.bar.name}}</a></li>
+	<li>Added by {{drink.user.name}}
+	<img src="{{drink.user.picture}}" alt="{{drink.user.name}} picture">
+	</ul>
+	</div>
+</div>
+{% endblock %}
