@@ -131,15 +131,15 @@ def fbconnect():
         return response
     access_token = request.data
 
-    app_id = json.loads(open('fb_client_secret.json', 'r').read())['web']['app_id']
-    app_secret = json.loads(open('fb_client_secret.json', 'r').read())['web']['app_secret']
-    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (app_id, app_secret, access_token)
+    app_id = json.loads(open('fb_client_secret.json',
+                             'r').read())['web']['app_id']
+    app_secret = json.loads(open('fb_client_secret.json',
+                                 'r').read())['web']['app_secret']
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (app_id, app_secret, access_token)  # NOQA
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
 
-    userinfo_url = "http://graph.facebook.com/v2.5/me"
     token = result.split('&')[0]
-
     url = 'https://graph.facebook.com/v2.5/me?%s&fields=name,id,email' % token
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
@@ -151,7 +151,7 @@ def fbconnect():
     login_session['facebook_id'] = data['id']
 
     # Get user picture
-    url = "https://graph.facebook.com/v2.5/me/picture?%s&redirect=0&height=200&width=200" % token
+    url = "https://graph.facebook.com/v2.5/me/picture?%s&redirect=0&height=200&width=200" % token  # NOQA
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
     data = json.loads(result)
@@ -170,11 +170,16 @@ def fbconnect():
 
 @app.route('/disconnect')
 def disconnect():
+    """Entry point to logout user from any used provider"""
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
-            gdisconnect()
-            del login_session['credentials']
-            del login_session['gplus_id']
+            result = gdisconnect()
+            if result.get('status') == '200':
+                del login_session['credentials']
+                del login_session['gplus_id']
+            else:
+                print "Unable to log user out."
+                print result
         elif login_session['provider'] == 'facebook':
             fbdisconnect()
             del login_session['facebook_id']
@@ -184,64 +189,79 @@ def disconnect():
         del login_session['picture']
         del login_session['user_id']
         del login_session['provider']
-        flash("Successfully logged out." )
+        flash("Successfully logged out.")
     else:
         flash("You were not logged in.")
     return redirect(url_for('showBars'))
 
 
 def fbdisconnect():
+    """Sign out of facebook"""
     facebook_id = login_session['facebook_id']
     url = 'https://graph.facebook.com/%s/permissions' % facebook_id
     h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
+    h.request(url, 'DELETE')[1]
 
 
 def gdisconnect():
+    """Sign out of Google+"""
     credentials = login_session.get('credentials')
     access_token = credentials.access_token
     if access_token is None:
         print 'Access Token is None'
-        response = make_response(json.dumps('Current user not connected.'), 401)
+        response = make_response(json.dumps('Current user not connected.'),
+                                 401)
         response.headers['Content-Type'] = 'application/json'
         return response
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
+    return result
 
 
 # JSON APIs to view Bar Information
 @app.route('/bar/<int:bar_id>/menu/JSON')
 def barMenuJSON(bar_id):
-    bar = session.query(Bar).filter_by(id=bar_id).one()
-    drinks = session.query(Drink).filter_by(
-        bar_id=bar_id).all()
+    """Returns a JSON with all the available drinks in the bar passed
+
+    Args:
+      bar_id: id of the bar that will display available drinks
+    """
+    drinks = session.query(Drink).filter_by(bar_id=bar_id).all()
     return jsonify(Bars=[i.serialize for i in drinks])
 
 
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/JSON')
-def barJSON(bar_id, drink_id):
+def drinkJSON(bar_id, drink_id):
+    """Returns a JSON with all the information of the drink passed
+
+    Args:
+      bar_id: id of the bar that has the drink with drink_id.
+      drink_id: id of the drink that will display its information.
+    """
     drink = session.query(Drink).filter_by(id=drink_id).one()
-    return jsonify(drink=drink.serialize)
+    return jsonify(Drink=drink.serialize)
 
 
 @app.route('/bar/JSON')
 def barsJSON():
+    """Lists all the existing bars in JSON format"""
     bars = session.query(Bar).all()
-    return jsonify(bars=[r.serialize for r in bars])
+    return jsonify(Bars=[r.serialize for r in bars])
 
 
 # Show all bars
 @app.route('/')
 @app.route('/bar/')
 def showBars():
+    """Lists all the existing bars"""
     bars = session.query(Bar).order_by(asc(Bar.name))
     newest_drinks = newestDrinks()
     return render_template('bars.html', bars=bars, newest_drinks=newest_drinks)
 
 
 def newestDrinks():
-    """Gets 10 drinks that were recently added"""
+    """Gets the 10 drinks most recently added"""
     drinks = session.query(Drink).order_by(Drink.created.desc()).limit(10)
     new_drinks = []
     for drink in drinks:
@@ -254,12 +274,12 @@ def newestDrinks():
     return new_drinks
 
 
-
-# Create a new bar
 @app.route('/bar/new/', methods=['GET', 'POST'])
 def newBar():
+    """Creates a new bar with the data sent in the form"""
     if request.method == 'POST':
-        newBar = Bar(name=request.form['name'], user_id=login_session['user_id'])
+        newBar = Bar(name=request.form['name'],
+                     user_id=login_session['user_id'])
         session.add(newBar)
         flash('New Bar %s Successfully Created' % newBar.name)
         session.commit()
@@ -268,9 +288,13 @@ def newBar():
         return render_template('new_bar.html')
 
 
-# Edit a bar
 @app.route('/bar/<int:bar_id>/edit/', methods=['GET', 'POST'])
 def editBar(bar_id):
+    """Modifies information about the Bar passed.
+
+    Args:
+      bar_id: id of the bar that will be edited.
+    """
     editedBar = session.query(Bar).filter_by(id=bar_id).one()
     if 'username' not in login_session:
         return redirect('login')
@@ -286,9 +310,13 @@ def editBar(bar_id):
         return render_template('edit_bar.html', bar=editedBar)
 
 
-# Delete a bar
 @app.route('/bar/<int:bar_id>/delete/', methods=['GET', 'POST'])
 def deleteBar(bar_id):
+    """Deletes the passed Bar
+
+    Args:
+      bar_id: id of the bar that will be deleted
+    """
     barToDelete = session.query(Bar).filter_by(id=bar_id).one()
     if 'username' not in login_session:
         return redirect('login')
@@ -307,17 +335,30 @@ def deleteBar(bar_id):
 @app.route('/bar/<int:bar_id>/')
 @app.route('/bar/<int:bar_id>/menu/')
 def showMenu(bar_id):
+    """Shows the drink menu available at the passed Bar.
+
+    Args:
+      bar_id: id of the bar that will display available drinks
+    """
     bar = session.query(Bar).filter_by(id=bar_id).one()
     creator = getUserInfo(bar.user_id)
     drinks = session.query(Drink).filter_by(bar_id=bar_id).all()
-    if 'username' not in login_session or creator.id != login_session['user_id']:
-        return render_template('public_menu.html', drinks=drinks, bar=bar, creator=creator)
+    if ('username' not in login_session or
+        creator.id != login_session['user_id']):
+        return render_template('public_menu.html', drinks=drinks, bar=bar,
+                               creator=creator)
     else:
-        return render_template('menu.html', drinks=drinks, bar=bar, creator=creator)
+        return render_template('menu.html', drinks=drinks, bar=bar,
+                               creator=creator)
 
 
 @app.route('/bar/<int:bar_id>/menu/new/', methods=['GET', 'POST'])
 def newDrink(bar_id):
+    """Adds the passed drink passed in the form to the Bar passed.
+
+    Args:
+      bar_id: id of the bar that will add the new drink
+    """
     if request.method == 'POST':
         newDrink = Drink(name=request.form['name'],
                          description=request.form['description'],
@@ -333,15 +374,26 @@ def newDrink(bar_id):
 
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/view', methods=['GET'])
 def viewDrink(bar_id, drink_id):
-    """Render detailed information of the drink"""
+    """Render detailed information of the drink
+
+    Args:
+      bar_id: id of the bar that has the drink passed.
+      drink_id: id of the drink that will display its information.
+    """
 
     drink = session.query(Drink).filter_by(id=drink_id).one()
     return render_template('view_drink.html', drink=drink)
 
 
-@app.route('/bar/<int:bar_id>/menu/<int:drink_id>/edit', methods=['GET', 'POST'])
+@app.route('/bar/<int:bar_id>/menu/<int:drink_id>/edit',
+           methods=['GET', 'POST'])
 def editDrink(bar_id, drink_id):
+    """Edit information of the drink passed
 
+    Args:
+      bar_id: id of the bar that has the drink passed.
+      drink_id: id of the drink that will be edited.
+    """
     editedDrink = session.query(Drink).filter_by(id=drink_id).one()
     if 'username' not in login_session:
         return redirect('login')
@@ -360,11 +412,19 @@ def editDrink(bar_id, drink_id):
         flash('Drink Successfully Edited')
         return redirect(url_for('showMenu', bar_id=bar_id))
     else:
-        return render_template('edit_drink.html', bar_id=bar_id, drink_id=drink_id, drink=editedDrink)
+        return render_template('edit_drink.html', bar_id=bar_id,
+                               drink_id=drink_id, drink=editedDrink)
 
 
-@app.route('/bar/<int:bar_id>/menu/<int:drink_id>/delete', methods=['GET', 'POST'])
+@app.route('/bar/<int:bar_id>/menu/<int:drink_id>/delete',
+           methods=['GET', 'POST'])
 def deleteDrink(bar_id, drink_id):
+    """Deletes the passed drink at the passed bar
+
+    Args:
+      bar_id: id of the bar that has the drink passed.
+      drink_id: id of the drink that will be deleted.
+    """
     drinkToDelete = session.query(Drink).filter_by(id=drink_id).one()
     if 'username' not in login_session:
         return redirect('login')
@@ -381,6 +441,11 @@ def deleteDrink(bar_id, drink_id):
 
 
 def getUserID(email):
+    """Given a user email return the user id or None if it's not registered
+
+    Args:
+      email: String with the user email
+    """
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
@@ -389,11 +454,21 @@ def getUserID(email):
 
 
 def getUserInfo(user_id):
+    """Returns complete information about the User passed.
+
+    Args:
+      user_id: id of the user that information will be returned.
+    """
     user = session.query(User).filter_by(id=user_id).one()
     return user
 
 
 def createUser(login_session):
+    """Creates a user in the database
+
+    Args:
+      login_session: dict with user's information that should be stored.
+    """
     newUser = User(name=login_session['username'],
                    email=login_session['email'],
                    picture=login_session['picture'])
