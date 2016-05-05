@@ -37,7 +37,7 @@
                         $('#js-sign-in').html('Login Successful!</br>Welcome '+ result + '!</br>Redirecting...')
                         setTimeout(function() {
                             window.location.href = '/bar';
-                        }, 2000);
+                        }, 1000);
                     }
                 }
             });
@@ -93,7 +93,7 @@ function sendTokenToServer() {
                   $('#js-sign-in').html('Login Successful!</br>Welcome '+ result + '!</br>Redirecting...')
                  setTimeout(function() {
                   window.location.href = "/bar";
-                 }, 2000);
+                 }, 1000);
 
                 } else {
                     $('#result').html('Failed to make a server-side call. Check your configuration and console.');
