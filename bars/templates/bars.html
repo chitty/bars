@@ -1,5 +1,4 @@
 {% extends "main.html" %}
-{% block title %} Bars {% endblock %}
 
 {% block buttons %}
 {% if 'username' in session %}
@@ -14,7 +13,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="col-md-6">
+<div class="col-md-2">
+	<h1>Bars</h1>
+</div>
+<div class="col-md-4">
 {% for bar in bars %}
 
 	<h3>
@@ -27,7 +29,7 @@
 </div>
 
 <div class="col-md-6">
-<h3>Recently added drinks:</h3>
+<h2>Recently added drinks:</h2>
 {% for drink in newest_drinks %}
 
 	<a href="{{url_for('viewDrink', bar_id = drink.bar_id, drink_id=drink.id)}}"><h4>{{drink.name}}</a> <em>in {{drink.bar_name}}</em> <small>{{drink.created|timesince}}</small></h4>

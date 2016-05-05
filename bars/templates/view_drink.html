@@ -13,16 +13,20 @@
 {% endblock %}
 {% block content %}
 <div class="col-md-6">
-	<br>
-	{{drink.description}}
-	<br>
-	${{drink.price}}
+	<div class="row">
+		<div class="col-md-10">
+			<h4>{{drink.description}}</h4>
+		</div>
+		<div class="col-md-2">
+			<h4><em>$ {{drink.price}}</em></h4>
+		</div>
+	</div>
 </div>
 <div class="col-md-6">
-	Available at <a href="{{url_for('showMenu', bar_id = drink.bar.id)}}">{{drink.bar.name}}</a></li>
-	<p class="text-right">
+	<h5>Available at <a href="{{url_for('showMenu', bar_id = drink.bar.id)}}">{{drink.bar.name}}</a></h5>
+	<h5 class="text-right">
 		Added by {{drink.user.name}}
 		<img class="img-circle user-pic" src="{{drink.user.picture}}" alt="{{drink.user.name}} picture">
-	</p>
+	</h5>
 </div>
 {% endblock %}
