@@ -1,5 +1,9 @@
 # Bars
 
+The bars app is a responsive website that display information about drinks available in different bars.
+
+Users can log in using Google+ or facebook in order to create new bars and drinks. Later they can modify or delete them if they want.
+
 ## Running
 
 The repository includes a Vagrant Virtual Machine with all the project's dependencies installed. To start it and connect to it run:
@@ -7,6 +11,18 @@ The repository includes a Vagrant Virtual Machine with all the project's depende
 	vagrant up
 	vagrant ssh
 
-Once in the virtual machine terminal navigate to `vagrant/bars` and create the database by running `python database_setup.py`. Run the actual app `python bars.py`
+Once in the virtual machine terminal navigate to `/vagrant/bars` and run the app:
+	
+	python bars.py
 
-Optional: To load some initial data run `python some_drinks.py`.
+Now the app should be up and running in `http://localhost:1234/`
+
+**To load some initial data run** `python some_drinks.py`.
+
+## JSON
+
+The project implements a JSON endpoint that serves the same information as displayed in the HTML endpoints.
+
+- To get all the existing bars: `/bar/JSON`
+- To see the complete drink menu of a bar: `/bar/<int:bar_id>/menu/JSON`
+- To see a drinks' detail: `/bar/<int:bar_id>/menu/<int:drink_id>/JSON`
