@@ -228,7 +228,7 @@ def barMenuJSON(bar_id):
       bar_id: id of the bar that will display available drinks
     """
     drinks = session.query(Drink).filter_by(bar_id=bar_id).all()
-    return jsonify(Bars=[i.serialize for i in drinks])
+    return jsonify(Drinks=[i.serialize for i in drinks])
 
 
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/JSON')

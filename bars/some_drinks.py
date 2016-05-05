@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*
+import json
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -9,103 +10,44 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+INITAL_DATA_FILE = 'initial_drinks.json'
 
+try:
+    json_drinks = json.loads(open(INITAL_DATA_FILE, 'r').read())
+except:
+    print 'Unable to read file %s, no data imported!' % INITAL_DATA_FILE
+    exit(1)
+
+
+def insert(element):
+    """Inserts the passed element into the database."""
+    session.add(element)
+    session.commit()
 
 # Create dummy user
-du = User(name="John Doe", email="johndoe@doemails.com",
-          picture='https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA')
-session.add(du)
-session.commit()
+user_id = json_drinks['User']['id']
+dummy_user = User(id=user_id,
+                  name=json_drinks['User']['name'],
+                  email=json_drinks['User']['email'],
+                  picture=json_drinks['User']['picture'])
+insert(dummy_user)
 
-# Drinks for Martini Bar
-bar1 = Bar(user_id=1, name="Martini Bar")
-session.add(bar1)
-session.commit()
+if 'Bars' not in json_drinks:
+    print 'No bars found in %s, no data imported!' % INITAL_DATA_FILE
+    exit(1)
 
-drink1 = Drink(user_id=1, name="Hendrick's Breakfast Martini",
-               description="1.5 oz Hendrick's Gin, 2 tsp Orange marmalade, .75"
-               " oz Fresh lemon juice, .5 oz Simple syrup. Garnish: 1 Lemon"
-               " Peel Glass: Cocktail",
-               price="7.50", type="Martini", bar=bar1)
-session.add(drink1)
-session.commit()
+bars = json_drinks['Bars']
+i = 0
+j = 0
+for bar in bars:
+    new_bar = Bar(id=bar['id'], name=bar['name'], user_id=user_id)
+    insert(new_bar)
+    i = i + 1
+    for drink in bar['Drinks']:
+        new_drink = Drink(name=drink['name'], price=drink['price'],
+                          type=drink['type'], bar=new_bar,
+                          description=drink['description'], user_id=user_id)
+        insert(new_drink)
+        j = j + 1
 
-drink2 = Drink(user_id=1, name="Dry Martini",
-               description="The Dry Martini is a classic cocktail that, like "
-               "a tailored suit, is timeless. Although the original of the "
-               "tipple is unclear, the Dry Martini has maintained a place in "
-               "cocktail history due to being easy to use and endlessly "
-               "sophisticated. Elegant for the fancy and boozy for the "
-               "heavy-handed.", price="6.50", type="Martini", bar=bar1)
-session.add(drink2)
-session.commit()
-
-drink3 = Drink(user_id=1, name="1942 Martini",
-               description="A really good tequila can make a really good "
-               "Martini.", price="5.50", type="Martini", bar=bar1)
-session.add(drink3)
-session.commit()
-
-drink4 = Drink(user_id=1, name="Black Pepper Gibson",
-               description="4oz of Dry vermouth garnished with "
-               "black-pepper-and-onion making this classic drink a savory "
-               "delight.", price="3.99", type="Martini", bar=bar1)
-session.add(drink4)
-session.commit()
-
-drink5 = Drink(user_id=1, name="You Name it Martini",
-               description="Ask for any combination you would like to try",
-               price="4.99", type="Martini", bar=bar1)
-session.add(drink5)
-session.commit()
-
-
-# Drinks for La Cantina
-bar2 = Bar(user_id=1, name="La Cantina")
-session.add(bar2)
-session.commit()
-
-
-drink1 = Drink(user_id=1, name="Cuba Libre",
-               description="Perfect match between rum and coke, lots of ice "
-               "and a bit of lime.", price="5.99", type="Cocktail", bar=bar2)
-session.add(drink1)
-session.commit()
-
-drink2 = Drink(user_id=1, name="Mojito",
-               description="White rum with fresh icy mint.",
-               price="6.25", type="Cocktail", bar=bar2)
-session.add(drink2)
-session.commit()
-
-drink3 = Drink(user_id=1, name="Tequila a lo Macho",
-               description="Our house finest tequila de la casa, solo para "
-               "los meros meros machos!", price="4.99", type="Shot", bar=bar2)
-session.add(drink3)
-session.commit()
-
-bar3 = Bar(user_id=1, name="Beer Factory")
-session.add(bar3)
-session.commit()
-
-
-drink1 = Drink(user_id=1, name="Red Beer",
-               description="Delicious ice-cold red beer full of flavour.",
-               price="1.99", type="Beer", bar=bar3)
-session.add(drink1)
-session.commit()
-
-drink2 = Drink(user_id=1, name="Honey Beer",
-               description="Ice cold beer blended with the perfect bee honey.",
-               price="2.25", type="Beer", bar=bar3)
-session.add(drink2)
-session.commit()
-
-drink3 = Drink(user_id=1, name="Black Beer",
-               description="Our house finest beer dark, strong and full of "
-               "flavour. A must try!",
-               price="2.99", type="Beer", bar=bar3)
-session.add(drink3)
-session.commit()
-
-print "bars and drinks inserted!"
+print "%d bars and %d drinks were inserted!" % (i, j)
