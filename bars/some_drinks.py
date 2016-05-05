@@ -26,7 +26,7 @@ drink1 = Drink(user_id=1, name="Hendrick's Breakfast Martini",
                description="1.5 oz Hendrick's Gin, 2 tsp Orange marmalade, .75"
                " oz Fresh lemon juice, .5 oz Simple syrup. Garnish: 1 Lemon"
                " Peel Glass: Cocktail",
-               price="7.50", type="Cocktail", bar=bar1)
+               price="7.50", type="Martini", bar=bar1)
 session.add(drink1)
 session.commit()
 
@@ -36,26 +36,26 @@ drink2 = Drink(user_id=1, name="Dry Martini",
                "tipple is unclear, the Dry Martini has maintained a place in "
                "cocktail history due to being easy to use and endlessly "
                "sophisticated. Elegant for the fancy and boozy for the "
-               "heavy-handed.", price="6.50", type="Cocktail", bar=bar1)
+               "heavy-handed.", price="6.50", type="Martini", bar=bar1)
 session.add(drink2)
 session.commit()
 
 drink3 = Drink(user_id=1, name="1942 Martini",
                description="A really good tequila can make a really good "
-               "Martini.", price="5.50", type="Cocktail", bar=bar1)
+               "Martini.", price="5.50", type="Martini", bar=bar1)
 session.add(drink3)
 session.commit()
 
 drink4 = Drink(user_id=1, name="Black Pepper Gibson",
                description="4oz of Dry vermouth garnished with "
                "black-pepper-and-onion making this classic drink a savory "
-               "delight.", price="3.99", type="Cocktail", bar=bar1)
+               "delight.", price="3.99", type="Martini", bar=bar1)
 session.add(drink4)
 session.commit()
 
 drink5 = Drink(user_id=1, name="You Name it Martini",
                description="Ask for any combination you would like to try",
-               price="4.99", type="Cocktail", bar=bar1)
+               price="4.99", type="Martini", bar=bar1)
 session.add(drink5)
 session.commit()
 

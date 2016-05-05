@@ -10,6 +10,26 @@
 			<label for="description">Description:</label>
 			<textarea class="form-control" maxlength="250" rows="3" name="description">{{drink.description}}</textarea>
 
+			<label for="type">Type:</label>
+			<select name="type" class="form-control">
+			    <option value="Cocktail">Cocktail</option>
+			    {% if drink.type == "Martini" %}
+					<option value="Martini" selected>Martini</option>
+			    {% else %}
+					<option value="Martini">Martini</option>
+			    {% endif %}
+			    {% if drink.type == "Shot" %}
+					<option value="Shot" selected>Shot</option>
+			    {% else %}
+					<option value="Shot">Shot</option>
+			    {% endif %}
+			    {% if drink.type == "Beer" %}
+					<option value="Beer" selected>Beer</option>
+			    {% else %}
+					<option value="Beer">Beer</option>
+			    {% endif %}
+			</select>
+
 			<label for="price">Price:</label>
 			<div class="input-group">
 				<div class="input-group-addon">$</div>

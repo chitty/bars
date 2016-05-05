@@ -362,6 +362,7 @@ def newDrink(bar_id):
     if request.method == 'POST':
         newDrink = Drink(name=request.form['name'],
                          description=request.form['description'],
+                         type=request.form['type'],
                          price=request.form['price'], bar_id=bar_id,
                          user_id=login_session['user_id'])
         session.add(newDrink)
@@ -407,6 +408,8 @@ def editDrink(bar_id, drink_id):
             editedDrink.description = request.form['description']
         if request.form.get('price'):
             editedDrink.price = request.form['price']
+        if request.form.get('type'):
+            editedDrink.type = request.form['type']
         session.add(editedDrink)
         session.commit()
         flash('Drink Successfully Edited')
