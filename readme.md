@@ -15,7 +15,7 @@ Once in the virtual machine terminal navigate to `/vagrant/bars` and run the app
 	
 	python bars.py
 
-Now the app should be up and running in `http://localhost:1234/`
+Now the app should be up and running in `http://localhost:5000/`
 
 **To load some initial data run** `python some_drinks.py`.
 
