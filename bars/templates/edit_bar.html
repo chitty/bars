@@ -5,6 +5,7 @@
 <div class="col-md-6">
 	<form action="{{ url_for('editBar', bar_id = bar.id)}}" method = "post">
 		<div class="form-group">
+			<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 			<label for="name">Name:</label>
 			<input type ="text" class="form-control" name="name" value="{{bar.name }}">
 			<button type="submit" class="btn btn-default" id="submit" type="submit">

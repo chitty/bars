@@ -2,6 +2,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, jsonify, url_for
 from flask import make_response, flash
+from flask.ext.seasurf import SeaSurf
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Bar, Drink, User
@@ -16,7 +17,7 @@ import json
 import requests
 
 app = Flask(__name__)
-
+csrf = SeaSurf(app)
 
 CLIENT_ID = json.loads(
        open('client_secret.json', 'r').read())['web']['client_id']
@@ -56,6 +57,7 @@ def showLogin():
     return render_template('login.html', STATE=state)
 
 
+@csrf.exempt
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     """Sign in with Google+"""
@@ -139,6 +141,7 @@ def gconnect():
     return username
 
 
+@csrf.exempt
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     """Sign In with facebook"""
