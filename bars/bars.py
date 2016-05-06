@@ -5,6 +5,7 @@ from flask import make_response, flash
 from flask.ext.seasurf import SeaSurf
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from database_setup import Base, Bar, Drink, User
 from flask import session as login_session
 import random
@@ -259,7 +260,10 @@ def drinkJSON(bar_id, drink_id):
       bar_id: id of the bar that has the drink with drink_id.
       drink_id: id of the drink that will display its information.
     """
-    drink = session.query(Drink).filter_by(id=drink_id).one()
+    try:
+        drink = session.query(Drink).filter_by(id=drink_id).one()
+    except NoResultFound:
+        return "{}"
     return jsonify(Drink=drink.serialize)
 
 
