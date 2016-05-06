@@ -359,7 +359,9 @@ def showMenu(bar_id):
     Args:
       bar_id: id of the bar that will display available drinks
     """
+    print "menu"
     bar = session.query(Bar).filter_by(id=bar_id).one()
+    print "nnnnn"
     creator = getUserInfo(bar.user_id)
     drinks = session.query(Drink).filter_by(bar_id=bar_id).all()
     if ('username' not in login_session or
