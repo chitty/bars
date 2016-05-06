@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import wraps
 from flask import Flask, render_template, request, redirect, jsonify, url_for
 from flask import make_response, flash
 from sqlalchemy import create_engine, asc
@@ -28,6 +29,22 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+
+def login_required(f):
+    """Decorator to verify that user is logged in
+
+    http://flask.pocoo.org/docs/0.10/patterns/viewdecorators/#login-required-decorator
+
+    Args:
+      f: the function to be decorated.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in login_session:
+            return redirect('login')
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @app.route('/login')
@@ -275,6 +292,7 @@ def newestDrinks():
 
 
 @app.route('/bar/new/', methods=['GET', 'POST'])
+@login_required
 def newBar():
     """Creates a new bar with the data sent in the form"""
     if request.method == 'POST':
@@ -289,6 +307,7 @@ def newBar():
 
 
 @app.route('/bar/<int:bar_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def editBar(bar_id):
     """Modifies information about the Bar passed.
 
@@ -296,9 +315,7 @@ def editBar(bar_id):
       bar_id: id of the bar that will be edited.
     """
     editedBar = session.query(Bar).filter_by(id=bar_id).one()
-    if 'username' not in login_session:
-        return redirect('login')
-    elif editedBar.user_id != login_session['user_id']:
+    if editedBar.user_id != login_session['user_id']:
         flash('You are not authorized to edit this bar!')
         return redirect(url_for('showBars'))
     if request.method == 'POST':
@@ -311,6 +328,7 @@ def editBar(bar_id):
 
 
 @app.route('/bar/<int:bar_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def deleteBar(bar_id):
     """Deletes the passed Bar
 
@@ -318,9 +336,7 @@ def deleteBar(bar_id):
       bar_id: id of the bar that will be deleted
     """
     barToDelete = session.query(Bar).filter_by(id=bar_id).one()
-    if 'username' not in login_session:
-        return redirect('login')
-    elif barToDelete.user_id != login_session['user_id']:
+    if barToDelete.user_id != login_session['user_id']:
         flash('You are not authorized to delete this bar!')
         return redirect(url_for('showBars'))
     if request.method == 'POST':
@@ -353,6 +369,7 @@ def showMenu(bar_id):
 
 
 @app.route('/bar/<int:bar_id>/menu/new/', methods=['GET', 'POST'])
+@login_required
 def newDrink(bar_id):
     """Adds the passed drink passed in the form to the Bar passed.
 
@@ -381,13 +398,13 @@ def viewDrink(bar_id, drink_id):
       bar_id: id of the bar that has the drink passed.
       drink_id: id of the drink that will display its information.
     """
-
     drink = session.query(Drink).filter_by(id=drink_id).one()
     return render_template('view_drink.html', drink=drink)
 
 
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/edit',
            methods=['GET', 'POST'])
+@login_required
 def editDrink(bar_id, drink_id):
     """Edit information of the drink passed
 
@@ -396,9 +413,7 @@ def editDrink(bar_id, drink_id):
       drink_id: id of the drink that will be edited.
     """
     editedDrink = session.query(Drink).filter_by(id=drink_id).one()
-    if 'username' not in login_session:
-        return redirect('login')
-    elif editedDrink.user_id != login_session['user_id']:
+    if editedDrink.user_id != login_session['user_id']:
         flash('You are not authorized to edit this drink!')
         return redirect(url_for('showMenu', bar_id=bar_id))
     if request.method == 'POST':
@@ -421,6 +436,7 @@ def editDrink(bar_id, drink_id):
 
 @app.route('/bar/<int:bar_id>/menu/<int:drink_id>/delete',
            methods=['GET', 'POST'])
+@login_required
 def deleteDrink(bar_id, drink_id):
     """Deletes the passed drink at the passed bar
 
@@ -429,9 +445,7 @@ def deleteDrink(bar_id, drink_id):
       drink_id: id of the drink that will be deleted.
     """
     drinkToDelete = session.query(Drink).filter_by(id=drink_id).one()
-    if 'username' not in login_session:
-        return redirect('login')
-    elif drinkToDelete.user_id != login_session['user_id']:
+    if drinkToDelete.user_id != login_session['user_id']:
         flash('You are not authorized to delete this drink!')
         return redirect(url_for('showMenu', bar_id=bar_id))
     if request.method == 'POST':
