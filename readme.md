@@ -26,3 +26,4 @@ The project implements a JSON endpoint that serves the same information as displ
 - To get all the existing bars: `/bar/JSON`
 - To see the complete drink menu of a bar: `/bar/<int:bar_id>/menu/JSON`
 - To see a drinks' detail: `/bar/<int:bar_id>/menu/<int:drink_id>/JSON`
+- To see the 10 newest drinks: `/newest_drinks/JSON`

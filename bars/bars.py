@@ -271,7 +271,22 @@ def drinkJSON(bar_id, drink_id):
 def barsJSON():
     """Lists all the existing bars in JSON format"""
     bars = session.query(Bar).all()
-    return jsonify(Bars=[r.serialize for r in bars])
+    return jsonify(Bars=[bar.serialize for bar in bars])
+
+
+@app.route('/newest_drinks/JSON')
+def newestDrinksJSON():
+    """Gets the 10 drinks most recently added"""
+    drinks = session.query(Drink).order_by(Drink.created.desc()).limit(10)
+    new_drinks = []
+    for drink in drinks:
+        drink_data = {"drink_id": drink.id,
+                      "name": drink.name,
+                      "bar_id": drink.bar.id,
+                      "bar_name": drink.bar.name,
+                      "created": timesince(drink.created)}
+        new_drinks.append(drink_data)
+    return jsonify(NewestDrinks=new_drinks)
 
 
 # Show all bars
